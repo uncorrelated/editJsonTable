@@ -8,6 +8,8 @@ var types = ["invariable", "text", "select", "toggle", "toggle"];
 var options = {"type": ["A", "B", "C"]};
 var default_values = ["", "", "A", 0, 1];
 
+var checked_string = "✓";
+var no_checked_string = "";
 var caret = [];
 
 var form = document.getElementsByTagName('form')[0];
@@ -50,7 +52,10 @@ function updateJSON(){
 }
 
 function toggleFlag(elm){
-   elm.textContent = (parseInt(elm.textContent) + 1) % 2;
+   if(checked_string != elm.textContent)
+      elm.textContent = checked_string;
+   else
+      elm.textContent = no_checked_string;
    updateJSON();
 }
 
@@ -59,7 +64,7 @@ function flagChanged(elm){
    tds = tr.getElementsByTagName("td");
    for(var i=0; i<tds.length; i++){
       if(tds[i]!=elm && colupdate == colnames[i]){
-         tds[i].textContent = 1;
+         tds[i].textContent = checked_string;
       }
    }
    updateJSON();
@@ -179,6 +184,15 @@ function edit(e){
 }
 
 function table_to_array(){
+
+   function text_to_value(text, type){
+      if("toggle" == type){
+         if(checked_string != text) return 0;
+         return 1;
+      }
+      return text;
+   }
+
    var trs = tbody.getElementsByTagName("tr");
    r = [];
    var k = 0;
@@ -189,7 +203,7 @@ function table_to_array(){
       var row = {};
       var id;
       for(var j=0; j<tds.length; j++){
-         row[colnames[j]] = tds[j].textContent;
+         row[colnames[j]] = text_to_value(tds[j].textContent, tds[j].getAttribute("col.type"));
       }
       r[k++] = row;
    }
@@ -200,6 +214,16 @@ function is_caret(type){
    if("select" == type || "text" == type)
       return true;
    return false;
+}
+
+function value_to_text(value, type){
+   if("toggle" == type){
+      if(0 != value){
+         return checked_string;
+      }
+      return no_checked_string;
+   }
+   return value;
 }
 
 function array_to_table(a){
@@ -213,7 +237,7 @@ function array_to_table(a){
       var tr = document.createElement('tr');
       for(var j = 0; j < colnames.length; j++){
          var td = document.createElement('td');
-         td.textContent = a[i][colnames[j]];
+         td.textContent = value_to_text(a[i][colnames[j]], types[j]);
          td.setAttribute("col.type", types[j]);
          td.setAttribute("col.name", colnames[j]);
          td.addEventListener("click", edit);
@@ -267,7 +291,7 @@ button_a.addEventListener("click", (e) => {
    var tr = document.createElement('tr');
    for(var i = 0; i < colnames.length; i++){
       var td = document.createElement('td');
-      td.textContent = default_values[i];
+      td.textContent = value_to_text(default_values[i], types[i]);
       td.setAttribute("col.type", types[i]);
       td.setAttribute("col.name", colnames[i]);
       td.addEventListener("click", edit);
