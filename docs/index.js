@@ -8,6 +8,8 @@ var types = ["invariable", "text", "select", "toggle", "toggle"];
 var options = {"type": ["A", "B", "C"]};
 var default_values = ["", "", "A", 0, 1];
 
+var caret = [];
+
 var form = document.getElementsByTagName('form')[0];
 form.addEventListener("submit", (event) => { return false; });
 
@@ -70,38 +72,39 @@ function moveNext(elm, direction){
    }
    var tr = elm.parentElement;
    var td = elm;
-   var ctype = td.getAttribute("col.type");
-   for(var j = 0; j < colnames.length; j++){
+   while(undefined != td){
       td = step(td, direction);
       if(undefined == td){
          tr = step(tr, direction);
          if(undefined == tr){
-            var elm = table;
-            while(undefined != (elm = step(elm, direction))){
-               if(input == elm || select == elm) continue;
-               if("input" == elm.tagName || "select" == elm.tagName){
-                  elm.focus();
-                  return;
-               }
-            }
+            caret['out'].focus();
             return;
          }
          td = tr.getElementsByTagName("td")[!direction ? 0 : colnames.length - 1];
       }
       if(undefined == td) return;
       var type = td.getAttribute("col.type");
-      if(ctype == type){
-         if("text" == type){
-            editText(td);
-            break;
-         } else if("select" == type){
-            chooseOption(td);
-            break;
-         }
+      if("text" == type){
+         editText(td);
+         break;
+      } else if("select" == type){
+         chooseOption(td);
+         break;
       }
    }
 }
 
+function setKeyListner(input, elm){
+   function keydownListener(e){
+      if(e.key == "Enter" || e.key == "Tab"){
+         input.removeEventListener("keydown", keydownListener);
+         e.preventDefault();
+         input.blur();
+         moveNext(elm, e.shiftKey);
+      }
+   }
+   input.addEventListener("keydown", keydownListener);
+}
 
 
 function editText(elm){
@@ -117,15 +120,7 @@ function editText(elm){
    }
    input.addEventListener("blur", blurListener);
 
-   function keydownListener(e){
-      if(e.key == "Enter" || e.key == "Tab"){
-         input.removeEventListener("keydown", keydownListener);
-         e.preventDefault();
-         input.blur();
-         moveNext(elm, e.shiftKey);
-      }
-   }
-   input.addEventListener("keydown", keydownListener);
+   setKeyListner(input, elm)
 
    input.value = elm.textContent;
    input.style.visibility = "visible";
@@ -150,15 +145,12 @@ function chooseOption(elm){
    }
    select.addEventListener("blur", blurListener);
 
-   function changeListener(e){
-      select.removeEventListener("change", changeListener);
-      select.blur();
-      moveNext(elm, e.shiftKey);
-   }
-   select.addEventListener("change", changeListener);
+   setKeyListner(select, elm)
 
    for(var i = 0; i < select.length; i++){
-      select.options[i].selected = (select.options[i].value == elm.textContent);
+      if(select.options[i].value == elm.textContent){
+         select.options[i].selected = true;
+      }
    }
    select.style.visibility = "visible";
    select.focus();
@@ -194,12 +186,19 @@ function table_to_array(){
    return r;
 }
 
+function is_caret(type){
+   if("select" == type || "text" == type)
+      return true;
+   return false;
+}
+
 function array_to_table(a){
    var trs = tbody.getElementsByTagName("tr");
    // trs[0] is the row of labels.
    for(var i=trs.length-1; i>0; i--){
       tbody.removeChild(trs[i]);
    }
+   caret['first'] = caret['last'] = undefined;
    for(var i = 0; i < a.length; i++){
       var tr = document.createElement('tr');
       for(var j = 0; j < colnames.length; j++){
@@ -209,6 +208,11 @@ function array_to_table(a){
          td.setAttribute("col.name", colnames[j]);
          td.addEventListener("click", edit);
          tr.appendChild(td);
+
+         if(undefined == caret['first'] && is_caret(types[j]))
+            caret['first'] = td;
+         if(is_caret(types[j]))
+            caret['last'] = td;
       }
       tbody.appendChild(tr);
    }
@@ -258,11 +262,21 @@ button_a.addEventListener("click", (e) => {
       td.setAttribute("col.name", colnames[i]);
       td.addEventListener("click", edit);
       tr.appendChild(td);
+      if(is_caret(types[i]))
+         caret['last'] = td;
    }
    tbody.appendChild(tr);
    updateJSON();
 })
+button_a.addEventListener("keydown", (e) => {
+   if((e.key == "Enter" || e.key == "Tab") && e.shiftKey){
+      e.preventDefault();
+      editText(caret['last']);
+      return false;
+   }
+})
 form.append(button_a);
+caret['out'] = button_a;
 
 var button_b = document.createElement("input");
 button_b.setAttribute("type", "button");
