@@ -157,6 +157,7 @@ function chooseOption(elm){
 }
 
 function editCell(elm){
+   if(undefined == elm) return;
    var type = elm.getAttribute("col.type");
    if("text" == type){
       editText(elm);
