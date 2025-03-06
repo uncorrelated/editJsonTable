@@ -41,8 +41,8 @@ function moveInput(input, elm){
    var domRect = elm.getBoundingClientRect();
    input.style.width = parseInt(domRect["width"]) + "px";
    input.style.height = domRect["height"] + "px";
-   input.style.top = domRect["top"] + "px";
-   input.style.left = domRect["left"] + "px";
+   input.style.top = domRect["top"] + window.pageYOffset + "px";
+   input.style.left = domRect["left"] + window.pageXOffset + "px";
 }
 
 function updateJSON(){
@@ -167,7 +167,7 @@ function editCell(elm){
 }
 
 function edit(e){
-   var elm = document.elementFromPoint(e.pageX, e.pageY);
+   var elm = document.elementFromPoint(e.pageX - window.pageXOffset, e.pageY - window.pageYOffset);
    var type = elm.getAttribute("col.type");
    if("toggle" == type){
       toggleFlag(elm);
