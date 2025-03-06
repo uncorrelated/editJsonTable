@@ -255,6 +255,7 @@ button_a.addEventListener("click", (e) => {
       var td = document.createElement('td');
       td.textContent = default_values[i];
       td.setAttribute("col.type", types[i]);
+      td.setAttribute("col.name", colnames[i]);
       td.addEventListener("click", edit);
       tr.appendChild(td);
    }
