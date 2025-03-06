@@ -156,6 +156,15 @@ function chooseOption(elm){
    select.focus();
 }
 
+function editCell(elm){
+   var type = elm.getAttribute("col.type");
+   if("text" == type){
+      editText(elm);
+   } else if("select" == type){
+      chooseOption(elm);
+   }
+}
+
 function edit(e){
    var elm = document.elementFromPoint(e.pageX, e.pageY);
    var type = elm.getAttribute("col.type");
@@ -271,7 +280,7 @@ button_a.addEventListener("click", (e) => {
 button_a.addEventListener("keydown", (e) => {
    if((e.key == "Enter" || e.key == "Tab") && e.shiftKey){
       e.preventDefault();
-      editText(caret['last']);
+      editCell(caret['last']);
       return false;
    }
 })
@@ -290,6 +299,17 @@ button_b.addEventListener("click", (e) => {
          if(colid != colnames[i]) continue;
          if("" == tds[i].textContent){
             tbody.removeChild(tr);
+            caret['last'] = undefined;
+            break;
+         }
+      }
+   }
+   if(undefined == caret['last'] && 0<trs.length){
+      var tr = trs[trs.length - 1];
+      var tds = tr.getElementsByTagName("td");
+      for(var i=tds.length-1; i>=0; i--){
+         if(is_caret(tds[i].getAttribute("col.type"))){
+            caret['last'] = tds[i];
             break;
          }
       }
