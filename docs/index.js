@@ -25,8 +25,9 @@ form.append(select);
 
 function setOptions(colname){
    var old_options = select.getElementsByTagName("option");
-   for(var i = 0; i < old_options.length; i++)
+   for(var i = old_options.length - 1; i >= 0 ; i--){
       select.removeChild(old_options[i]);
+   }
    for(var i = 0; i < options[colname].length; i++){
       var option = document.createElement('option');
       option.label = option.value = options[colname][i];
