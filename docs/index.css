@@ -24,6 +24,7 @@ form table th {
 form table td {
   background-color: white;
   text-align: center;
+  user-select: none;
 }
 form table td:nth-of-type(2) {
   text-align: left;
