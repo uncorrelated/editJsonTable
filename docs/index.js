@@ -104,7 +104,6 @@ var keydownListener;
 function setKeyListner(input, elm){
    function keydownListener(e){
       if(e.key == "Enter" || e.key == "Tab"){
-         input.removeEventListener("keydown", keydownListener);
          e.preventDefault();
          input.blur();
          moveNext(elm, e.shiftKey);
