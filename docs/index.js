@@ -99,6 +99,8 @@ function moveNext(elm, direction){
    }
 }
 
+var keydownListener;
+
 function setKeyListner(input, elm){
    function keydownListener(e){
       if(e.key == "Enter" || e.key == "Tab"){
@@ -108,14 +110,15 @@ function setKeyListner(input, elm){
          moveNext(elm, e.shiftKey);
       }
    }
+   window.keydownListener = keydownListener;
    input.addEventListener("keydown", keydownListener);
 }
-
 
 function editText(elm){
    moveInput(input, elm);
 
    function blurListener(e){
+      input.removeEventListener("keydown", window.keydownListener);
       input.removeEventListener("blur", blurListener);
       if(input.value != elm.textContent){
          elm.textContent = input.value;
@@ -138,6 +141,7 @@ function chooseOption(elm){
    setOptions(elm.getAttribute("col.name"));
 
    function blurListener(e){
+      select.removeEventListener("keydown", window.keydownListener);
       select.removeEventListener("blur", blurListener);
       if(0 < select.selectedOptions.length){
          var new_value = select.options[select.selectedIndex].value;
