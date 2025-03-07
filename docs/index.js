@@ -133,7 +133,7 @@ function toggleFlag(elm){
       elm.textContent = checked_string;
    else
       elm.textContent = no_checked_string;
-   updateJSON();
+   flagChanged(elm);
 }
 
 function flagChanged(elm){
