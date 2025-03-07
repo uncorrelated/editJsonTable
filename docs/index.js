@@ -147,11 +147,8 @@ function moveNext(elm, direction){
       }
       if(undefined == td) return;
       var type = td.getAttribute("col.type");
-      if("text" == type){
-         editText(td);
-         break;
-      } else if("select" == type){
-         chooseOption(td);
+      if(is_caret(type)){
+         editCell(td);
          break;
       }
    }
