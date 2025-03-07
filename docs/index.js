@@ -80,6 +80,30 @@ select.addEventListener("blur", (e) => {
 });
 form.append(select);
 
+var checkbox = document.createElement('input');
+checkbox.setAttribute("type", "checkbox");
+checkbox.style.border = checkbox.style.padding = 0;
+checkbox.style.position = "absolute";
+checkbox.style.visibility = "hidden";
+checkbox.addEventListener("keydown", (e) => {
+   if(e.key == "Enter" || e.key == "Tab"){
+      e.preventDefault();
+      checkbox.blur();
+      moveNext(edited_cell, e.shiftKey);
+   }
+});
+checkbox.addEventListener("blur", (e) => {
+   if(checkbox.checked && checked_string != edited_cell.textContent){
+      edited_cell.textContent = checked_string;
+      flagChanged(edited_cell);
+   } else if(!checkbox.checked && no_checked_string != edited_cell.textContent){
+      edited_cell.textContent = no_checked_string;
+      flagChanged(edited_cell);
+   }
+   checkbox.style.visibility = "hidden";
+});
+form.append(checkbox);
+
 function setOptions(colname){
    var old_options = select.getElementsByTagName("option");
    for(var i = old_options.length - 1; i >= 0 ; i--){
@@ -175,6 +199,18 @@ function chooseOption(elm){
    select.focus();
 }
 
+function editCheckbox(elm){
+   moveInput(checkbox, elm);
+   edited_cell = elm;
+   checkbox.value = checked_string;
+   if(checked_string == elm.textContent)
+      checkbox.checked = true;
+   else
+      checkbox.checked = false;
+   checkbox.style.visibility = "visible";
+   checkbox.focus();
+}
+
 function editCell(elm){
    if(undefined == elm) return;
    var type = elm.getAttribute("col.type");
@@ -182,6 +218,8 @@ function editCell(elm){
       editText(elm);
    } else if("select" == type){
       chooseOption(elm);
+   } else if("toggle" == type){
+      editCheckbox(elm);
    }
 }
 
@@ -222,7 +260,7 @@ function table_to_array(){
 }
 
 function is_caret(type){
-   if("select" == type || "text" == type)
+   if("select" == type || "text" == type || "toggle" == type)
       return true;
    return false;
 }
