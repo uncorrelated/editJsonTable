@@ -16,6 +16,27 @@ var edited_cell;
 var form = document.getElementsByTagName('form')[0];
 form.addEventListener("submit", (event) => { return false; });
 
+var button_r = document.createElement('input');
+button_r.setAttribute("type", "button");
+button_r.value = "reload";
+button_r.addEventListener("click", (e) => {
+   loadJSON("./index.json");
+});
+form.prepend(button_r);
+
+function setTabEventListener(elm){
+   if(undefined == elm) return;
+   elm.addEventListener("keydown", (e) => {
+      if(e.key == "Tab" && !e.shiftKey){
+         e.preventDefault();
+         editCell(caret['first']);
+      }
+   });
+   caret['previous'] = elm;
+}
+
+setTabEventListener(button_r); // set an element which is focused when SHFIT + TAB is input by keyboard at the first element of the table. The element don't need to be the reload button.
+
 var input = document.createElement('input');
 input.style.visibility = "hidden";
 input.style.border = input.style.padding = 0;
@@ -109,12 +130,17 @@ function moveNext(elm, direction){
    }
    var tr = elm.parentElement;
    var td = elm;
+   if(direction && caret['first'] == elm){
+      if(undefined != caret['previous'])
+         caret['previous'].focus();
+   }
    while(undefined != td){
       td = step(td, direction);
       if(undefined == td){
          tr = step(tr, direction);
          if(undefined == tr){
-            caret['out'].focus();
+            if(!direction)
+               caret['next'].focus();
             return;
          }
          td = tr.getElementsByTagName("td")[!direction ? 0 : colnames.length - 1];
@@ -167,11 +193,8 @@ function edit(e){
    var type = elm.getAttribute("col.type");
    if("toggle" == type){
       toggleFlag(elm);
-   } else if("text" == type){
-      editText(elm);
-   } else if("select" == type){
-      chooseOption(elm);
-   }
+   } else
+      editCell(elm);
 }
 
 function table_to_array(){
@@ -301,7 +324,8 @@ button_a.addEventListener("keydown", (e) => {
    }
 })
 form.append(button_a);
-caret['out'] = button_a;
+
+caret['next'] = button_a;
 
 var button_b = document.createElement("input");
 button_b.setAttribute("type", "button");
