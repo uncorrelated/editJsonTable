@@ -11,6 +11,7 @@ var default_values = ["", "", "A", 0, 1];
 var checked_string = "✓";
 var no_checked_string = "";
 var caret = [];
+var edited_cell;
 
 var form = document.getElementsByTagName('form')[0];
 form.addEventListener("submit", (event) => { return false; });
@@ -19,12 +20,43 @@ var input = document.createElement('input');
 input.style.visibility = "hidden";
 input.style.border = input.style.padding = 0;
 input.style.position = "absolute";
+input.addEventListener("keydown", (e) => {
+   if(e.key == "Enter" || e.key == "Tab"){
+      e.preventDefault();
+      input.blur();
+      moveNext(edited_cell, e.shiftKey);
+   }
+});
+input.addEventListener("blur", (e) => {
+   if(input.value != edited_cell.textContent){
+      edited_cell.textContent = input.value;
+      flagChanged(edited_cell);
+   }
+   input.style.visibility = "hidden";
+});
 form.append(input);
 
 var select = document.createElement('select');
 select.style.visibility = "hidden";
 select.style.border = select.style.padding = 0;
 select.style.position = "absolute";
+select.addEventListener("keydown", (e) => {
+   if(e.key == "Enter" || e.key == "Tab"){
+      e.preventDefault();
+      select.blur();
+      moveNext(edited_cell, e.shiftKey);
+   }
+});
+select.addEventListener("blur", (e) => {
+   if(0 < select.selectedOptions.length){
+      var new_value = select.options[select.selectedIndex].value;
+      if(edited_cell.textContent != new_value){
+         edited_cell.textContent = new_value;
+         flagChanged(edited_cell);
+      }
+   }
+   select.style.visibility = "hidden";
+});
 form.append(select);
 
 function setOptions(colname){
@@ -99,62 +131,18 @@ function moveNext(elm, direction){
    }
 }
 
-var keydownListener;
-
-function setKeyListner(input, elm){
-   function keydownListener(e){
-      if(e.key == "Enter" || e.key == "Tab"){
-         e.preventDefault();
-         input.blur();
-         moveNext(elm, e.shiftKey);
-      }
-   }
-   window.keydownListener = keydownListener;
-   input.addEventListener("keydown", keydownListener);
-}
-
 function editText(elm){
    moveInput(input, elm);
-
-   function blurListener(e){
-      input.removeEventListener("keydown", window.keydownListener);
-      input.removeEventListener("blur", blurListener);
-      if(input.value != elm.textContent){
-         elm.textContent = input.value;
-         flagChanged(elm);
-      }
-      input.style.visibility = "hidden";
-   }
-   input.addEventListener("blur", blurListener);
-
-   setKeyListner(input, elm)
-
+   edited_cell = elm;
    input.value = elm.textContent;
    input.style.visibility = "visible";
    input.focus();
-
 }
 
 function chooseOption(elm){
    moveInput(select, elm);
+   edited_cell = elm;
    setOptions(elm.getAttribute("col.name"));
-
-   function blurListener(e){
-      select.removeEventListener("keydown", window.keydownListener);
-      select.removeEventListener("blur", blurListener);
-      if(0 < select.selectedOptions.length){
-         var new_value = select.options[select.selectedIndex].value;
-         if(elm.textContent != new_value){
-            elm.textContent = new_value;
-            flagChanged(elm);
-         }
-      }
-      select.style.visibility = "hidden";
-   }
-   select.addEventListener("blur", blurListener);
-
-   setKeyListner(select, elm)
-
    for(var i = 0; i < select.length; i++){
       if(select.options[i].value == elm.textContent){
          select.options[i].selected = true;
