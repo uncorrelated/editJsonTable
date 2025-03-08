@@ -10,6 +10,8 @@ var default_values = ["", "", "A", 0, 1];
 
 var checked_string = "✓";
 var no_checked_string = "";
+var is_enable_arrow_keys = true;
+
 var caret = [];
 var edited_cell;
 
@@ -37,17 +39,41 @@ function setTabEventListener(elm){
 
 setTabEventListener(button_r); // set an element which is focused when SHFIT + TAB is input by keyboard at the first element of the table. The element don't need to be the reload button.
 
+function addKeydownEventListener(elm){
+   elm.addEventListener("keydown", (e) => {
+      if(e.key == "Enter" || e.key == "Tab"){
+         e.preventDefault();
+         elm.blur();
+         moveNext(edited_cell, e.shiftKey);
+      }
+
+      if(!is_enable_arrow_keys) return;
+
+      if(e.key == "ArrowDown"){
+         e.preventDefault();
+         elm.blur();
+         moveNext(edited_cell, false, true);
+      } else if(e.key == "ArrowUp"){
+         e.preventDefault();
+         elm.blur();
+         moveNext(edited_cell, true, true);
+      } else if(e.key == "ArrowLeft"){
+         e.preventDefault();
+         elm.blur();
+         moveNext(edited_cell, true, false);
+      } else if(e.key == "ArrowRight"){
+         e.preventDefault();
+         elm.blur();
+         moveNext(edited_cell, false, false);
+      }
+   })
+}
+
 var input = document.createElement('input');
 input.style.visibility = "hidden";
 input.style.border = input.style.padding = 0;
 input.style.position = "absolute";
-input.addEventListener("keydown", (e) => {
-   if(e.key == "Enter" || e.key == "Tab"){
-      e.preventDefault();
-      input.blur();
-      moveNext(edited_cell, e.shiftKey);
-   }
-});
+addKeydownEventListener(input);
 input.addEventListener("blur", (e) => {
    if(input.value != edited_cell.textContent){
       edited_cell.textContent = input.value;
@@ -85,13 +111,7 @@ checkbox.setAttribute("type", "checkbox");
 checkbox.style.border = checkbox.style.padding = 0;
 checkbox.style.position = "absolute";
 checkbox.style.visibility = "hidden";
-checkbox.addEventListener("keydown", (e) => {
-   if(e.key == "Enter" || e.key == "Tab"){
-      e.preventDefault();
-      checkbox.blur();
-      moveNext(edited_cell, e.shiftKey);
-   }
-});
+addKeydownEventListener(checkbox);
 checkbox.addEventListener("blur", (e) => {
    if(checkbox.checked && checked_string != edited_cell.textContent){
       edited_cell.textContent = checked_string;
@@ -147,7 +167,7 @@ function flagChanged(elm){
    updateJSON();
 }
 
-function moveNext(elm, direction){
+function moveNext(elm, direction, samecolumn = false){
    // focus on the next input-text/select datum.
    function step(elm, direction){
       return !direction ? elm.nextElementSibling : elm.previousElementSibling;
@@ -172,6 +192,9 @@ function moveNext(elm, direction){
       if(undefined == td) return;
       var type = td.getAttribute("col.type");
       if(is_caret(type)){
+         if(samecolumn &&
+            (elm.getAttribute("col.name") != td.getAttribute("col.name")))
+            continue;
          editCell(td);
          break;
       }
