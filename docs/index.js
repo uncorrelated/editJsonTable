@@ -37,43 +37,43 @@ function setTabEventListener(elm){
    caret['previous'] = elm;
 }
 
-setTabEventListener(button_r); // set an element which is focused when SHFIT + TAB is input by keyboard at the first element of the table. The element don't need to be the reload button.
+setTabEventListener(button_r); // set an element which is focused when SHFIT + TAB is input by keyboard at the first element of the table. The element doesn't need to be the reload button.
 
-function addKeydownEventListener(elm){
-   elm.addEventListener("keydown", (e) => {
-      if(e.key == "Enter" || e.key == "Tab"){
-         e.preventDefault();
-         elm.blur();
-         moveNext(edited_cell, e.shiftKey);
-      }
+function commonProcedureAtKeydown(elm, e){
+   if(e.key == "Enter" || e.key == "Tab"){
+      e.preventDefault();
+      elm.blur();
+      moveNext(edited_cell, e.shiftKey);
+   }
 
-      if(!is_enable_arrow_keys) return;
+   if(!is_enable_arrow_keys) return;
 
-      if(e.key == "ArrowDown"){
-         e.preventDefault();
-         elm.blur();
-         moveNext(edited_cell, false, true);
-      } else if(e.key == "ArrowUp"){
-         e.preventDefault();
-         elm.blur();
-         moveNext(edited_cell, true, true);
-      } else if(e.key == "ArrowLeft"){
-         e.preventDefault();
-         elm.blur();
-         moveNext(edited_cell, true, false);
-      } else if(e.key == "ArrowRight"){
-         e.preventDefault();
-         elm.blur();
-         moveNext(edited_cell, false, false);
-      }
-   })
+   if(e.key == "ArrowDown"){
+      e.preventDefault();
+      elm.blur();
+      moveNext(edited_cell, false, true);
+   } else if(e.key == "ArrowUp"){
+      e.preventDefault();
+      elm.blur();
+      moveNext(edited_cell, true, true);
+   } else if(e.key == "ArrowLeft"){
+      e.preventDefault();
+      elm.blur();
+      moveNext(edited_cell, true, false);
+   } else if(e.key == "ArrowRight"){
+      e.preventDefault();
+      elm.blur();
+      moveNext(edited_cell, false, false);
+   }
 }
 
 var input = document.createElement('input');
 input.style.visibility = "hidden";
 input.style.border = input.style.padding = 0;
 input.style.position = "absolute";
-addKeydownEventListener(input);
+input.addEventListener("keydown", (e) => {
+   commonProcedureAtKeydown(input, e);
+})
 input.addEventListener("blur", (e) => {
    if(input.value != edited_cell.textContent){
       edited_cell.textContent = input.value;
@@ -92,6 +92,14 @@ select.addEventListener("keydown", (e) => {
       e.preventDefault();
       select.blur();
       moveNext(edited_cell, e.shiftKey);
+   } else if(e.key.toUpperCase() == 'Z' && e.ctrlKey){
+      e.preventDefault();
+      for(var i=0; i<select.options.length; i++){
+        if(select.options[i].value == edited_cell.textContent){
+           select.selectedIndex = i;
+           break;
+        }
+      }
    }
 });
 select.addEventListener("blur", (e) => {
@@ -111,7 +119,16 @@ checkbox.setAttribute("type", "checkbox");
 checkbox.style.border = checkbox.style.padding = 0;
 checkbox.style.position = "absolute";
 checkbox.style.visibility = "hidden";
-addKeydownEventListener(checkbox);
+checkbox.addEventListener("keydown", (e) => {
+   commonProcedureAtKeydown(checkbox, e);
+   if(e.key.toUpperCase() == 'Z' && e.ctrlKey){
+      e.preventDefault();
+      if(checked_string == edited_cell.textContent)
+         checkbox.checked = true;
+      else
+         checkbox.checked = false;
+   }
+})
 checkbox.addEventListener("blur", (e) => {
    if(checkbox.checked && checked_string != edited_cell.textContent){
       edited_cell.textContent = checked_string;
